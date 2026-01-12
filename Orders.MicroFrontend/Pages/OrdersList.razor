@@ -1,0 +1,198 @@
+﻿@page "/orders"
+@using Shared.Contracts.Events
+@using Shared.Contracts.Models
+@using Shared.Contracts.Communication
+@inject IEventAggregator EventAggregator
+@implements IDisposable
+
+<PageTitle>Órdenes</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="text-primary">
+                <i class="bi bi-receipt"></i> Gestión de Órdenes
+            </h3>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-primary" @onclick="CreateNewOrder" disabled="@(!CanCreateOrder)">
+                <i class="bi bi-plus-circle"></i> Nueva Orden
+            </button>
+        </div>
+    </div>
+
+    @if (!CanCreateOrder)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle"></i>
+            Selecciona un producto y un cliente desde sus respectivos módulos para crear una orden.
+        </div>
+    }
+    else if (selectedProduct != null && selectedCustomer != null)
+    {
+        <div class="card mb-4 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Orden Pendiente</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Cliente:</h6>
+                        <p class="mb-1"><strong>@selectedCustomer.CustomerName</strong></p>
+                        <p class="text-muted small">@selectedCustomer.Email</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Producto:</h6>
+                        <p class="mb-1"><strong>@selectedProduct.ProductName</strong></p>
+                        <p class="text-success"><strong>${@selectedProduct.Price:F2}</strong></p>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Cantidad:</label>
+                        <input type="number" class="form-control" @bind="quantity" min="1" max="10" />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Total:</label>
+                        <h4 class="text-success">${@(selectedProduct.Price* quantity):F2}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Historial de Órdenes</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID Orden</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Total</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in orders.OrderByDescending(o => o.OrderDate))
+                        {
+                            <tr>
+                                <td><strong>#@order.Id</strong></td>
+                                <td>@order.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>Cliente @order.CustomerId</td>
+                                <td>Producto @order.ProductId</td>
+                                <td>@order.Quantity</td>
+                                <td class="text-success"><strong>${@order.Total:F2}</strong></td>
+                                <td>
+                                    <span class="badge @GetStatusBadgeClass(order.Status)">
+                                        @order.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (!orders.Any())
+            {
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                    <p class="mt-2">No hay órdenes registradas</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Order> orders = new();
+    private ProductSelectedEvent? selectedProduct;
+    private CustomerSelectedEvent? selectedCustomer;
+    private int quantity = 1;
+    private int nextOrderId = 1;
+
+    private bool CanCreateOrder => selectedProduct != null && selectedCustomer != null;
+
+    protected override void OnInitialized()
+    {
+        EventAggregator.Subscribe<ProductSelectedEvent>(OnProductSelected);
+        EventAggregator.Subscribe<CustomerSelectedEvent>(OnCustomerSelected);
+    }
+
+    private void OnProductSelected(ProductSelectedEvent evt)
+    {
+        selectedProduct = evt;
+        StateHasChanged();
+    }
+
+    private void OnCustomerSelected(CustomerSelectedEvent evt)
+    {
+        selectedCustomer = evt;
+        StateHasChanged();
+    }
+
+    private void CreateNewOrder()
+    {
+        if (selectedProduct == null || selectedCustomer == null)
+            return;
+
+        var total = selectedProduct.Price * quantity;
+
+        var newOrder = new Order
+        {
+            Id = nextOrderId++,
+            CustomerId = selectedCustomer.CustomerId,
+            ProductId = selectedProduct.ProductId,
+            Quantity = quantity,
+            Total = total,
+            OrderDate = DateTime.Now,
+            Status = OrderStatus.Pending
+        };
+
+        orders.Add(newOrder);
+
+        var orderEvent = new OrderCreatedEvent(
+        newOrder.Id,
+        newOrder.CustomerId,
+        newOrder.ProductId,
+        newOrder.Total,
+        DateTime.Now
+        );
+
+        EventAggregator.Publish(orderEvent);
+
+        var notification = new NotificationEvent(
+        $"Orden #{newOrder.Id} creada exitosamente - Total: ${total:F2}",
+        NotificationType.Success,
+        DateTime.Now
+        );
+
+        EventAggregator.Publish(notification);
+
+        // Resetear selección
+        selectedProduct = null;
+        selectedCustomer = null;
+        quantity = 1;
+    }
+
+    private string GetStatusBadgeClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "bg-warning",
+        OrderStatus.Processing => "bg-info",
+        OrderStatus.Shipped => "bg-primary",
+        OrderStatus.Delivered => "bg-success",
+        OrderStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+
+    public void Dispose()
+    {
+        EventAggregator.Unsubscribe<ProductSelectedEvent>(OnProductSelected);
+        EventAggregator.Unsubscribe<CustomerSelectedEvent>(OnCustomerSelected);
+    }
+}

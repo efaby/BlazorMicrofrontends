@@ -1,0 +1,165 @@
+﻿@using MicroFrontend.Abstractions
+@using Microsoft.AspNetCore.Components.Rendering
+
+@if (Module != null && ComponentType != null)
+{
+    <div class="dynamic-module-host">
+        <CascadingValue Value="Module">
+            <DynamicComponent Type="@ComponentType" Parameters="@Parameters" />
+        </CascadingValue>
+    </div>
+}
+else if (IsLoading)
+{
+    <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando módulo...</span>
+        </div>
+        <p class="mt-3 text-muted">Cargando @ModuleName...</p>
+    </div>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">
+        <i class="bi bi-exclamation-triangle"></i>
+        <strong>Error al cargar el módulo:</strong>
+        <p class="mb-0">@ErrorMessage</p>
+    </div>
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        No hay módulo seleccionado
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string? ModuleName { get; set; }
+
+    [Parameter]
+    public string? Route { get; set; }
+
+    [Parameter]
+    public Dictionary<string, object>? Parameters { get; set; }
+
+    [Inject]
+    private Shell.App.Services.ModuleFederationManager ModuleFederation { get; set; } = default!;
+
+    private IMicroFrontendModule? Module { get; set; }
+    private Type? ComponentType { get; set; }
+    private bool IsLoading { get; set; }
+    private string? ErrorMessage { get; set; }
+    private string? _currentModuleName;
+    private string? _currentRoute;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Solo recargar si cambió el módulo o la ruta
+        if (_currentModuleName != ModuleName || _currentRoute != Route)
+        {
+            _currentModuleName = ModuleName;
+            _currentRoute = Route;
+            await LoadModuleAsync();
+        }
+    }
+
+    private async Task LoadModuleAsync()
+    {
+        if (string.IsNullOrEmpty(ModuleName))
+            return;
+
+        IsLoading = true;
+        ErrorMessage = null;
+        ComponentType = null;
+        StateHasChanged();
+
+        try
+        {
+            // Intentar obtener módulo ya cargado
+            Module = ModuleFederation.GetModule(ModuleName);
+
+            // Si no está cargado, cargarlo
+            if (Module == null)
+            {
+                var result = await ModuleFederation.LoadModuleAsync(ModuleName);
+
+                if (!result.Success)
+                {
+                    ErrorMessage = result.ErrorMessage ?? "Error desconocido";
+                    return;
+                }
+
+                Module = result.Module;
+            }
+
+            if (Module == null)
+            {
+                ErrorMessage = "No se pudo cargar el módulo";
+                return;
+            }
+
+            // Determinar qué componente renderizar
+            if (!string.IsNullOrEmpty(Route))
+            {
+                // Buscar componente por ruta
+                var routes = Module.GetRoutes();
+                var route = routes.FirstOrDefault(r =>
+                r.Path.Equals(Route, StringComparison.OrdinalIgnoreCase) ||
+                MatchRoute(r.Path, Route));
+
+                if (route != null)
+                {
+                    ComponentType = route.ComponentType;
+                    Parameters = route.Parameters ?? Parameters;
+                }
+                else
+                {
+                    ComponentType = Module.RootComponent;
+                }
+            }
+            else
+            {
+                // Usar componente raíz del módulo
+                ComponentType = Module.RootComponent;
+            }
+
+            Console.WriteLine($"✅ Renderizando componente: {ComponentType?.Name}");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = $"Error al cargar el módulo: {ex.Message}";
+            Console.Error.WriteLine($"❌ {ErrorMessage}");
+            Console.Error.WriteLine(ex.StackTrace);
+        }
+        finally
+        {
+            IsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private bool MatchRoute(string pattern, string path)
+    {
+        // Coincidencia simple de rutas
+        if (pattern.Equals(path, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        // Manejar wildcards
+        if (pattern.Contains("{*"))
+        {
+            var basePath = pattern.Split("{*")[0].TrimEnd('/');
+            return path.StartsWith(basePath, StringComparison.OrdinalIgnoreCase);
+        }
+
+        return false;
+    }
+}
+
+<style>
+    .dynamic-module-host {
+        width: 100%;
+        min-height: 400px;
+    }
+</style>

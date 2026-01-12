@@ -1,0 +1,12 @@
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/bin/Debug/net10.0/MicroFrontend.Abstractions.deps.json
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/bin/Debug/net10.0/MicroFrontend.Abstractions.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/bin/Debug/net10.0/MicroFrontend.Abstractions.pdb
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.csproj.AssemblyReference.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.AssemblyInfoInputs.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.AssemblyInfo.cs
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.csproj.CoreCompileInputs.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/refint/MicroFrontend.Abstractions.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.pdb
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/ref/MicroFrontend.Abstractions.dll

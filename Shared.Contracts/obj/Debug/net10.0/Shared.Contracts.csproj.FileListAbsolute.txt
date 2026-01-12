@@ -1,0 +1,12 @@
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/bin/Debug/net10.0/Shared.Contracts.deps.json
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/bin/Debug/net10.0/Shared.Contracts.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/bin/Debug/net10.0/Shared.Contracts.pdb
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.csproj.AssemblyReference.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.GeneratedMSBuildEditorConfig.editorconfig
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.AssemblyInfoInputs.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.AssemblyInfo.cs
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.csproj.CoreCompileInputs.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/refint/Shared.Contracts.dll
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/Shared.Contracts.pdb
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shared.Contracts/obj/Debug/net10.0/ref/Shared.Contracts.dll

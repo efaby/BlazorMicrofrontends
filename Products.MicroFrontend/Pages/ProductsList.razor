@@ -1,0 +1,162 @@
+﻿@page "/products"
+@using Shared.Contracts.Events
+@using Shared.Contracts.Models
+@using Shared.Contracts.Communication
+@inject IEventAggregator EventAggregator
+@inject NavigationManager Navigation
+<PageTitle>Products</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="text-primary">
+                <i class="bi bi-box-seam"></i> Product Catalog
+            </h3>
+        </div>
+        <div class="col-auto">
+            <input type="text" class="form-control" placeholder="Search products..." @bind="searchTerm"
+                @bind:event="oninput" />
+
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-secondary" @onclick="() => AddProduct()">
+                <i class="bi bi-plus-circle"></i> Add
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        @foreach (var product in FilteredProducts)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 shadow-sm hover-card">
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
+                        style="height: 200px;">
+                        <i class="bi bi-image" style="font-size: 3rem; color: #ccc;"></i>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text text-muted">@product.Description</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="h4 text-success mb-0">${@product.Price:F2}</span>
+                            <span class="badge bg-info">Stock: @product.Stock</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <button class="btn btn-primary w-100" @onclick="() => SelectProduct(product)"
+                            disabled="@(product.Stock == 0)">
+                            <i class="bi bi-cart-plus"></i>
+                            @(product.Stock > 0 ? "Select" : "Out of Stock")
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!FilteredProducts.Any())
+    {
+        <div class="alert alert-info mt-4">
+            <i class="bi bi-info-circle"></i> No products found.
+        </div>
+    }
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+    }
+</style>
+
+@code {
+    private string searchTerm = string.Empty;
+
+    private List<Product> products = new()
+{
+new Product
+{
+Id = 1,
+Name = "Gaming Laptop Pro",
+Description = "High-end laptop for gaming and design",
+Price = 1299.99m,
+Stock = 15
+},
+new Product
+{
+Id = 2,
+Name = "Wireless Mouse",
+Description = "Ergonomic mouse with 6 programmable buttons",
+Price = 49.99m,
+Stock = 50
+},
+new Product
+{
+Id = 3,
+Name = "RGB Mechanical Keyboard",
+Description = "Mechanical keyboard with Cherry MX switches",
+Price = 129.99m,
+Stock = 30
+},
+new Product
+{
+Id = 4,
+Name = "4K Monitor 27\"",
+Description = "Professional monitor with IPS panel",
+Price = 449.99m,
+Stock = 8
+},
+new Product
+{
+Id = 5,
+Name = "HD Webcam",
+Description = "1080p webcam with built-in microphone",
+Price = 79.99m,
+Stock = 0
+},
+new Product
+{
+Id = 6,
+Name = "Bluetooth Headphones",
+Description = "Wireless headphones with noise cancellation",
+Price = 199.99m,
+Stock = 25
+}
+};
+
+    private IEnumerable<Product> FilteredProducts =>
+    string.IsNullOrWhiteSpace(searchTerm)
+    ? products
+    : products.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+    p.Description.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    private void SelectProduct(Product product)
+    {
+        var productEvent = new ProductSelectedEvent(
+        product.Id,
+        product.Name,
+        product.Price,
+        DateTime.Now
+        );
+        Navigation.NavigateTo("/products/details/" + product.Id);
+
+        /*EventAggregator.Publish(productEvent);
+
+        var notification = new NotificationEvent(
+        $"Product '{product.Name}' selected - ${product.Price:F2}",
+        NotificationType.Success,
+        DateTime.Now
+        );
+
+        EventAggregator.Publish(notification);*/
+    }
+
+    private void AddProduct()
+    {
+        Navigation.NavigateTo("/products/create");
+    }
+}

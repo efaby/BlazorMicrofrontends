@@ -1,0 +1,92 @@
+﻿@page "/products/create"
+@using Products.MicroFrontend.Services
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+<PageTitle>Create Product</PageTitle>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <h3 class="mb-4">
+                <i class="bi bi-plus-circle"></i> Create New Product
+            </h3>
+
+            <div class="card">
+                <div class="card-body">
+                    <EditForm Model="@newProduct" OnValidSubmit="HandleSubmit">
+                        <DataAnnotationsValidator />
+
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <InputText class="form-control" @bind-Value="newProduct.Name" />
+                            <ValidationMessage For="@(() => newProduct.Name)" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Description</label>
+                            <InputTextArea class="form-control" rows="3" @bind-Value="newProduct.Description" />
+                            <ValidationMessage For="@(() => newProduct.Description)" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Price</label>
+                                    <InputNumber class="form-control" @bind-Value="newProduct.Price" />
+                                    <ValidationMessage For="@(() => newProduct.Price)" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Stock</label>
+                                    <InputNumber class="form-control" @bind-Value="newProduct.Stock" />
+                                    <ValidationMessage For="@(() => newProduct.Stock)" />
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label class="form-label">Category</label>
+                                    <InputText class="form-control" @bind-Value="newProduct.Category" />
+                                    <ValidationMessage For="@(() => newProduct.Category)" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="bi bi-save"></i> Save
+                            </button>
+                            <button type="button" class="btn btn-secondary" @onclick="Cancel">
+                                <i class="bi bi-x"></i> Cancel
+                            </button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private ProductDto newProduct = new()
+    {
+        Name = string.Empty,
+        Description = string.Empty,
+        Category = string.Empty
+    };
+
+    private async Task HandleSubmit()
+    {
+        var success = await ProductService.CreateProductAsync(newProduct);
+
+        if (success)
+        {
+            Navigation.NavigateTo("/products");
+        }
+    }
+
+    private void Cancel()
+    {
+        Navigation.NavigateTo("/products");
+    }
+}

@@ -1,0 +1,421 @@
+﻿@page "/"
+@page "/dashboard"
+@using Shell.App.Services
+@using Shell.App.Components
+@using MicroFrontend.Abstractions
+@inject ModuleFederationManager ModuleFederation
+@inject DynamicRouteManager RouteManager
+@inject NavigationManager Navigation
+@implements IDisposable
+<!-- All UI text translated to English -->
+<PageTitle>Dashboard - Module Federation (No iframes)</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="text-primary">
+                <i class="bi bi-grid-3x3-gap"></i> Dashboard - Dynamic Rendering
+            </h2>
+            <p class="text-muted">
+                <span class="badge bg-success">No iframes</span>
+                Loads and renders modules natively in Blazor
+            </p>
+        </div>
+
+    </div>
+
+    <div class="row">
+        <!-- Panel de Módulos -->
+        <div class="col-lg-3">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-puzzle"></i> Available Modules
+                    </h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    @foreach (var moduleMetadata in availableModules.Values.OrderBy(m => m.Name))
+                    {
+                        <button
+                            class="list-group-item list-group-item-action @(activeModule == moduleMetadata.Name ? "active" : "")"
+                            @onclick="() => LoadModule(moduleMetadata.Name)"
+                            disabled="@loadingModules.Contains(moduleMetadata.Name)">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center">
+                                        @if (loadedModules.ContainsKey(moduleMetadata.Name))
+                                        {
+                                            <i class="@loadedModules[moduleMetadata.Name].Icon me-2"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-box me-2"></i>
+                                        }
+                                        <strong>@moduleMetadata.Name</strong>
+                                    </div>
+                                    <small class="text-muted d-block">v@moduleMetadata.Version</small>
+                                    @if (moduleMetadata.IsLoaded && moduleMetadata.LoadedAt.HasValue)
+                                    {
+                                        <small class="text-success d-block">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            Loaded @moduleMetadata.LoadedAt.Value.ToString("HH:mm:ss")
+
+                                        </small>
+                                    }
+                                </div>
+                                @if (loadingModules.Contains(moduleMetadata.Name))
+                                {
+                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                }
+                                else if (moduleMetadata.IsLoaded)
+                                {
+                                    <span class="badge bg-success">
+                                        <i class="bi bi-check"></i>
+                                    </span>
+                                }
+                            </div>
+                        </button>
+                    }
+                </div>
+
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <small class="text-muted">
+                            <i class="bi bi-check-circle"></i> @loadedModules.Count/@availableModules.Count
+                        </small>
+                        <small class="text-muted">
+                            <i class="bi bi-clock"></i> @totalLoadTime.TotalMilliseconds.ToString("F0")ms
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Panel Principal -->
+        <div class="col-lg-9">
+            @if (currentModule != null)
+            {
+                <!-- Contenedor del Módulo Dinámico -->
+                <div class="card shadow-sm module-content-card">
+                    <div class="card-body p-4" style="min-height: 500px;">
+                        <div class="module-wrapper">
+                            <DynamicModuleHost ModuleName="@currentModule.ModuleName" Route="@currentRoute"
+                                Parameters="@currentParameters" />
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <!-- Estado Vacío -->
+                <div class="card shadow-sm">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-box-seam" style="font-size: 6rem; color: #e0e0e0;"></i>
+                        <h3 class="mt-4 mb-3">Welcome to Module Federation</h3>
+                        <p class="text-muted mb-4">
+                            Select a module from the list to load it dynamically
+                            <br />
+                            <strong>No iframes</strong> - Native rendering of Blazor components
+                        </p>
+                        <div class="row justify-content-center">
+                            <div class="col-md-8">
+                                <div class="alert alert-info text-start">
+                                    <h6><i class="bi bi-info-circle"></i> Features:</h6>
+                                    <ul class="mb-0">
+                                        <li>✅ Dynamic loading of modules at runtime</li>
+                                        <li>✅ Native rendering without iframes</li>
+                                        <li>✅ Dynamic routes per module</li>
+                                        <li>✅ Communication between modules via EventAggregator</li>
+                                        <li>✅ Download and reload modules</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Console de Logs -->
+            @if (loadLogs.Any())
+            {
+                <div class="card shadow-sm mt-3">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">
+                            <i class="bi bi-terminal"></i> Module Federation Console
+                        </h6>
+                        <button class="btn btn-sm btn-outline-light" @onclick="ClearLogs">
+                            <i class="bi bi-trash"></i> Clear
+                        </button>
+                    </div>
+                    <div class="card-body bg-dark text-light p-3"
+                        style="max-height: 250px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+                        @foreach (var log in loadLogs.OrderByDescending(l => l.Timestamp).Take(50))
+                        {
+                            <div class="log-entry mb-1">
+                                <span class="text-muted">[<span
+                                        class="text-info">@log.Timestamp.ToString("HH:mm:ss.fff")</span>]</span>
+                                <span class="@GetLogColorClass(log.Type)">@log.Message</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item.active {
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+        font-weight: bold;
+    }
+
+    .nav-link {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .nav-link:hover:not(.active) {
+        background-color: #e9ecef;
+    }
+
+    .log-entry {
+        line-height: 1.6;
+    }
+
+    .module-wrapper {
+        animation: fadeIn 0.3s ease-in;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .module-content-card {
+        transition: all 0.3s ease;
+    }
+</style>
+
+@code {
+    private Dictionary<string, ModuleMetadata> availableModules = new();
+    private Dictionary<string, IMicroFrontendModule> loadedModules = new();
+    private Dictionary<string, RouteDefinition> dynamicRoutes = new();
+    private List<string> loadingModules = new();
+    private List<LoadLog> loadLogs = new();
+    private TimeSpan totalLoadTime = TimeSpan.Zero;
+    private bool isPreloading = false;
+
+    private string? activeModule;
+    private string? currentRoute;
+    private IMicroFrontendModule? currentModule;
+    private List<RouteDefinition> moduleRoutes = new();
+    private Dictionary<string, object>? currentParameters;
+
+    protected override void OnInitialized()
+    {
+        RefreshModules();
+
+        RouteManager.OnRoutesChanged += OnRoutesChanged;
+        ModuleFederation.OnModuleLoaded += OnModuleLoadedEvent;
+        ModuleFederation.OnModuleError += OnModuleErrorEvent;
+
+        AddLog("🚀 Module Federation system initialized (no iframes)", LogType.Success);
+    }
+
+    private async Task LoadModule(string moduleName)
+    {
+        if (loadingModules.Contains(moduleName))
+            return;
+
+        loadingModules.Add(moduleName);
+        AddLog($"📦 Loading Module: {moduleName}...", LogType.Info);
+        StateHasChanged();
+
+        try
+        {
+            var result = await ModuleFederation.LoadModuleAsync(moduleName);
+
+            if (result.Success && result.Module != null)
+            {
+                activeModule = moduleName;
+                currentModule = result.Module;
+                moduleRoutes = result.Module.GetRoutes().ToList();
+                currentRoute = moduleRoutes.FirstOrDefault()?.Path;
+                totalLoadTime += result.LoadTime;
+
+                AddLog($"✅ Module '{moduleName}' loaded in {result.LoadTime.TotalMilliseconds:F0}ms", LogType.Success);
+                AddLog($" 📍 {moduleRoutes.Count} route(s) registered", LogType.Info);
+
+                RefreshModules();
+            }
+            else
+            {
+                AddLog($"❌ Error loading '{moduleName}': {result.ErrorMessage}", LogType.Error);
+            }
+        }
+        finally
+        {
+            loadingModules.Remove(moduleName);
+            StateHasChanged();
+        }
+    }
+
+    private void UnloadModule(string moduleName)
+    {
+        if (ModuleFederation.UnloadModule(moduleName))
+        {
+            AddLog($"🗑️ MModule '{moduleName}' unloaded", LogType.Warning);
+
+            if (activeModule == moduleName)
+            {
+                activeModule = null;
+                currentModule = null;
+                moduleRoutes.Clear();
+                currentRoute = null;
+            }
+
+            RefreshModules();
+            StateHasChanged();
+        }
+    }
+
+    private async Task ReloadModule(string moduleName)
+    {
+        AddLog($"🔄 Reloading module: {moduleName}", LogType.Info);
+        UnloadModule(moduleName);
+        await Task.Delay(100); // Small pause
+        await LoadModule(moduleName);
+    }
+
+    private async Task PreloadAllModules()
+    {
+        isPreloading = true;
+        AddLog("📥 Preloading all modules...", LogType.Info);
+        StateHasChanged();
+
+        try
+        {
+            await ModuleFederation.PreloadAllModulesAsync();
+            RefreshModules();
+            AddLog("✅ All modules preloaded", LogType.Success);
+        }
+        finally
+        {
+            isPreloading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void RefreshModules()
+    {
+        availableModules = ModuleFederation.GetAvailableModules()
+        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        loadedModules = ModuleFederation.GetLoadedModules()
+        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        dynamicRoutes = RouteManager.GetAllRoutes()
+        .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+    }
+
+    private void NavigateToRoute(string path)
+    {
+        currentRoute = path;
+        AddLog($"🧭 Navigating to: {path}", LogType.Info);
+        StateHasChanged();
+    }
+
+    private void OnRoutesChanged()
+    {
+        RefreshModules();
+        StateHasChanged();
+    }
+
+    private void OnModuleLoadedEvent(ModuleLoadedEvent evt)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void OnModuleErrorEvent(ModuleErrorEvent evt)
+    {
+        AddLog($"❌ Error in module '{evt.ModuleName}': {evt.Error}", LogType.Error);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void AddLog(string message, LogType type)
+    {
+        loadLogs.Add(new LoadLog
+        {
+            Message = message,
+            Type = type,
+            Timestamp = DateTime.Now
+        });
+
+        if (loadLogs.Count > 100)
+        {
+            loadLogs.RemoveAt(0);
+        }
+    }
+
+    private void ClearLogs()
+    {
+        loadLogs.Clear();
+        AddLog("🧹 Logs cleared", LogType.Info);
+    }
+
+    private string GetLogColorClass(LogType type) => type switch
+    {
+        LogType.Success => "text-success",
+        LogType.Error => "text-danger",
+        LogType.Warning => "text-warning",
+        LogType.Info => "text-info",
+        _ => "text-white"
+    };
+
+    public void Dispose()
+    {
+        RouteManager.OnRoutesChanged -= OnRoutesChanged;
+    }
+
+    private class LoadLog
+    {
+        public required string Message { get; init; }
+        public LogType Type { get; init; }
+        public DateTime Timestamp { get; init; }
+    }
+
+    private enum LogType
+    {
+        Info,
+        Success,
+        Warning,
+        Error
+    }
+}
