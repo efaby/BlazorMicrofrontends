@@ -1,5 +1,6 @@
 ﻿@page "/products/details/{id:int}"
 @using Products.MicroFrontend.Services
+@using Products.MicroFrontend.Models
 @inject IProductService ProductService
 @inject NavigationManager Navigation
 
@@ -62,9 +63,9 @@
 
 @code {
     [Parameter]
-    public int Id { get; set; }
+    public string Id { get; set; }
 
-    private ProductDto? product;
+    private Product? product;
 
     protected override async Task OnInitializedAsync()
     {

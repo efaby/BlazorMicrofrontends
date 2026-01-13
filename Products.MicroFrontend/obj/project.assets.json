@@ -54,6 +54,23 @@
           "buildTransitive/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets": {}
         }
       },
+      "Microsoft.AspNetCore.Components.Authorization/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authorization": "10.0.1",
+          "Microsoft.AspNetCore.Components": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Components.Forms/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -384,6 +401,30 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Microsoft.Extensions.Http/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.1",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Diagnostics": "10.0.1",
+          "Microsoft.Extensions.Logging": "10.0.1",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Options": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
       "Microsoft.Extensions.Logging/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -560,7 +601,10 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "Microsoft.AspNetCore.Components.Web": "10.0.0"
+          "Microsoft.AspNetCore.Components.Authorization": "10.0.1",
+          "Microsoft.AspNetCore.Components.Web": "10.0.1",
+          "Microsoft.AspNetCore.Components.WebAssembly": "10.0.1",
+          "Microsoft.Extensions.Http": "10.0.1"
         },
         "compile": {
           "bin/placeholder/Shared.Contracts.dll": {}
@@ -623,6 +667,23 @@
           "buildTransitive/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets": {}
         }
       },
+      "Microsoft.AspNetCore.Components.Authorization/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.AspNetCore.Authorization": "10.0.1",
+          "Microsoft.AspNetCore.Components": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "Microsoft.AspNetCore.Components.Forms/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -953,6 +1014,30 @@
           "buildTransitive/net8.0/_._": {}
         }
       },
+      "Microsoft.Extensions.Http/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.1",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Diagnostics": "10.0.1",
+          "Microsoft.Extensions.Logging": "10.0.1",
+          "Microsoft.Extensions.Logging.Abstractions": "10.0.1",
+          "Microsoft.Extensions.Options": "10.0.1"
+        },
+        "compile": {
+          "lib/net10.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Http.dll": {
+            "related": ".xml"
+          }
+        },
+        "build": {
+          "buildTransitive/net8.0/_._": {}
+        }
+      },
       "Microsoft.Extensions.Logging/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -1129,7 +1214,10 @@
         "type": "project",
         "framework": ".NETCoreApp,Version=v10.0",
         "dependencies": {
-          "Microsoft.AspNetCore.Components.Web": "10.0.0"
+          "Microsoft.AspNetCore.Components.Authorization": "10.0.1",
+          "Microsoft.AspNetCore.Components.Web": "10.0.1",
+          "Microsoft.AspNetCore.Components.WebAssembly": "10.0.1",
+          "Microsoft.Extensions.Http": "10.0.1"
         },
         "compile": {
           "bin/placeholder/Shared.Contracts.dll": {}
@@ -1212,6 +1300,21 @@
         "buildTransitive/netstandard2.0/Microsoft.AspNetCore.Components.Analyzers.targets",
         "microsoft.aspnetcore.components.analyzers.10.0.1.nupkg.sha512",
         "microsoft.aspnetcore.components.analyzers.nuspec"
+      ]
+    },
+    "Microsoft.AspNetCore.Components.Authorization/10.0.1": {
+      "sha512": "Ahez1F0EfsPqIT/X/TcdJCDYjVACHJwIPgZSof33wqLXaENUJNDnzphkmXOiBY1tvok/ZIUVEpeFLWdkLh0IyA==",
+      "type": "package",
+      "path": "microsoft.aspnetcore.components.authorization/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "THIRD-PARTY-NOTICES.txt",
+        "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.dll",
+        "lib/net10.0/Microsoft.AspNetCore.Components.Authorization.xml",
+        "microsoft.aspnetcore.components.authorization.10.0.1.nupkg.sha512",
+        "microsoft.aspnetcore.components.authorization.nuspec"
       ]
     },
     "Microsoft.AspNetCore.Components.Forms/10.0.1": {
@@ -1831,6 +1934,35 @@
         "lib/netstandard2.0/Microsoft.Extensions.FileSystemGlobbing.xml",
         "microsoft.extensions.filesystemglobbing.10.0.1.nupkg.sha512",
         "microsoft.extensions.filesystemglobbing.nuspec",
+        "useSharedDesignerContext.txt"
+      ]
+    },
+    "Microsoft.Extensions.Http/10.0.1": {
+      "sha512": "ZXJup9ReE1Ot3M8jqcw1b/lnc8USxyYS3cyLsssU39u04TES9JNGviWUGIvP3K7mMU3TF7kQl2aS0SmVwegflw==",
+      "type": "package",
+      "path": "microsoft.extensions.http/10.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "PACKAGE.md",
+        "THIRD-PARTY-NOTICES.TXT",
+        "buildTransitive/net461/Microsoft.Extensions.Http.targets",
+        "buildTransitive/net462/_._",
+        "buildTransitive/net8.0/_._",
+        "buildTransitive/netcoreapp2.0/Microsoft.Extensions.Http.targets",
+        "lib/net10.0/Microsoft.Extensions.Http.dll",
+        "lib/net10.0/Microsoft.Extensions.Http.xml",
+        "lib/net462/Microsoft.Extensions.Http.dll",
+        "lib/net462/Microsoft.Extensions.Http.xml",
+        "lib/net8.0/Microsoft.Extensions.Http.dll",
+        "lib/net8.0/Microsoft.Extensions.Http.xml",
+        "lib/net9.0/Microsoft.Extensions.Http.dll",
+        "lib/net9.0/Microsoft.Extensions.Http.xml",
+        "lib/netstandard2.0/Microsoft.Extensions.Http.dll",
+        "lib/netstandard2.0/Microsoft.Extensions.Http.xml",
+        "microsoft.extensions.http.10.0.1.nupkg.sha512",
+        "microsoft.extensions.http.nuspec",
         "useSharedDesignerContext.txt"
       ]
     },

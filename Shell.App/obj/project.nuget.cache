@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "JlotBbUEo88=",
+  "dgSpecHash": "bKXOwgvVo0g=",
   "success": true,
   "projectFilePath": "/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/Shell.App/Shell.App.csproj",
   "expectedPackageFiles": [
@@ -8,6 +8,7 @@
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.authorization/10.0.1/microsoft.aspnetcore.authorization.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components/10.0.1/microsoft.aspnetcore.components.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components.analyzers/10.0.1/microsoft.aspnetcore.components.analyzers.10.0.1.nupkg.sha512",
+    "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components.authorization/10.0.1/microsoft.aspnetcore.components.authorization.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components.forms/10.0.1/microsoft.aspnetcore.components.forms.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components.web/10.0.1/microsoft.aspnetcore.components.web.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.aspnetcore.components.webassembly/10.0.1/microsoft.aspnetcore.components.webassembly.10.0.1.nupkg.sha512",
@@ -26,6 +27,7 @@
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.fileproviders.abstractions/10.0.1/microsoft.extensions.fileproviders.abstractions.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.fileproviders.physical/10.0.1/microsoft.extensions.fileproviders.physical.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.filesystemglobbing/10.0.1/microsoft.extensions.filesystemglobbing.10.0.1.nupkg.sha512",
+    "/Users/fabianvilla/.nuget/packages/microsoft.extensions.http/10.0.1/microsoft.extensions.http.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.logging/10.0.1/microsoft.extensions.logging.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.logging.abstractions/10.0.1/microsoft.extensions.logging.abstractions.10.0.1.nupkg.sha512",
     "/Users/fabianvilla/.nuget/packages/microsoft.extensions.options/10.0.1/microsoft.extensions.options.10.0.1.nupkg.sha512",

@@ -1,88 +1,136 @@
+using Shared.Contracts.Http;
+using Shared.Contracts.Authentication;
+using Products.MicroFrontend.Models;
+
 namespace Products.MicroFrontend.Services;
 
 public interface IProductService
 {
-    Task<List<ProductDto>> GetProductsAsync();
-    Task<ProductDto?> GetProductByIdAsync(int id);
-    Task<bool> CreateProductAsync(ProductDto product);
+    Task<List<Product>> GetAllProductsAsync();
+    Task<Product?> GetProductByIdAsync(string id);
+    Task<Product> CreateProductAsync(Product product);
+    Task UpdateProductAsync(string id, Product product);
+    Task DeleteProductAsync(string id);
 }
 
 public class ProductService : IProductService
 {
-    private readonly List<ProductDto> _products = new()
+    private readonly AuthenticatedHttpClient _http;
+    private readonly SharedAuthenticationStateProvider _authStateProvider;
+    private readonly ILogger<ProductService> _logger;
+
+    // ✅ Inyectar AMBOS: HttpClient Y AuthStateProvider
+    public ProductService(
+        AuthenticatedHttpClient http,
+        SharedAuthenticationStateProvider authStateProvider,
+        ILogger<ProductService> logger)
     {
-        new ProductDto
+        _http = http;
+        _authStateProvider = authStateProvider;
+        _logger = logger;
+    }
+
+    public async Task<List<Product>> GetAllProductsAsync()
+    {
+        try
         {
-            Id = 1,
-            Name = "Gaming Laptop Pro",
-            Description = "High-end laptop for gaming and design",
-            Price = 1299.99m,
-            Stock = 15,
-            Category = "Electronics"
-        },
-        new ProductDto
-        {
-            Id = 2,
-            Name = "Wireless Mouse",
-            Description = "Ergonomic mouse with 6 programmable buttons",
-            Price = 49.99m,
-            Stock = 50,
-            Category = "Accessories"
-        },
-        new ProductDto
-        {
-            Id = 3,
-            Name = "Mechanical Keyboard RGB",
-            Description = "Mechanical keyboard with Cherry MX switches",
-            Price = 129.99m,
-            Stock = 30,
-            Category = "Accessories"
-        },
-        new ProductDto
-        {
-            Id = 4,
-            Name = "Wireless Mouse",
-            Description = "Ergonomic mouse with 6 programmable buttons",
-            Price = 49.99m,
-            Stock = 50,
-            Category = "Accessories"
-        },
-        new ProductDto
-        {
-            Id = 5,
-            Name = "Mechanical Keyboard RGB",
-            Description = "Mechanical keyboard with Cherry MX switches",
-            Price = 129.99m,
-            Stock = 30,
-            Category = "Accessories"
+            // ✅ OPCIÓN 1: Obtener token explícitamente si lo necesitas
+            var token = await _authStateProvider.GetTokenAsync();
+            _logger.LogInformation("Getting products with token: {Token}", token?[..20] + "...");
+
+            // ✅ OPCIÓN 2: Usar AuthenticatedHttpClient (token automático)
+            // El token se agrega automáticamente al header Authorization
+            var products = await _http.GetAsync<List<Product>>("products");
+
+            _logger.LogInformation("Retrieved {Count} products", products?.Count ?? 0);
+            return products ?? new List<Product>();
         }
-    };
-
-    public Task<List<ProductDto>> GetProductsAsync()
-    {
-        return Task.FromResult(_products);
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "Error getting products from API");
+            throw;
+        }
     }
 
-    public Task<ProductDto?> GetProductByIdAsync(int id)
+    public async Task<Product?> GetProductByIdAsync(string id)
     {
-        var product = _products.FirstOrDefault(p => p.Id == id);
-        return Task.FromResult(product);
+        try
+        {
+            // ✅ El token se incluye automáticamente
+            return await _http.GetAsync<Product>($"products/{id}");
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning("Product {Id} not found", id);
+            return null;
+        }
     }
 
-    public Task<bool> CreateProductAsync(ProductDto product)
+    public async Task<Product> CreateProductAsync(Product product)
     {
-        product.Id = _products.Max(p => p.Id) + 1;
-        _products.Add(product);
-        return Task.FromResult(true);
-    }
-}
+        try
+        {
+            // ✅ Verificar que el usuario esté autenticado antes de crear
+            var isAuthenticated = await _authStateProvider.IsAuthenticatedAsync();
+            if (!isAuthenticated)
+            {
+                throw new UnauthorizedAccessException("User must be authenticated to create products");
+            }
 
-public class ProductDto
-{
-    public int Id { get; set; }
-    public required string Name { get; set; }
-    public required string Description { get; set; }
-    public decimal Price { get; set; }
-    public int Stock { get; set; }
-    public required string Category { get; set; }
+            // ✅ Obtener info del usuario para logging
+            var userInfo = await _authStateProvider.GetUserInfoAsync();
+            _logger.LogInformation("User {Username} creating product: {ProductName}",
+                userInfo?.Username, product.Name);
+
+            // POST con token automático
+            var created = await _http.PostAsync<Product, Product>("products", product);
+
+            _logger.LogInformation("Created product {Id}: {Name}", created?.Id, created?.Name);
+            return created!;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating product");
+            throw;
+        }
+    }
+
+    public async Task UpdateProductAsync(string id, Product product)
+    {
+        try
+        {
+            // ✅ Verificar permisos/roles si es necesario
+            var userInfo = await _authStateProvider.GetUserInfoAsync();
+            if (userInfo?.Roles?.Contains("Admin") != true)
+            {
+                throw new UnauthorizedAccessException("Only admins can update products");
+            }
+
+            // PUT con token automático
+            await _http.PutAsync<Product, Product>($"products/{id}", product);
+
+            _logger.LogInformation("Updated product {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating product {Id}", id);
+            throw;
+        }
+    }
+
+    public async Task DeleteProductAsync(string id)
+    {
+        try
+        {
+            // DELETE con token automático
+            await _http.DeleteAsync($"products/{id}");
+
+            _logger.LogInformation("Deleted product {Id}", id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting product {Id}", id);
+            throw;
+        }
+    }
 }

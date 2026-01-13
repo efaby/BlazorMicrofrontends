@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Shell.App;
 using Shell.App.Services;
-using Shared.Contracts.Communication;
+using Shared.Contracts.Http;
+using Shared.Contracts.Services;
+using Shared.Contracts.Authentication;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
@@ -14,8 +16,7 @@ builder.Services.AddScoped(sp => new HttpClient
     BaseAddress = new Uri(builder.HostEnvironment.BaseAddress)
 });
 
-// Communication services
-builder.Services.AddSingleton<IEventAggregator, EventAggregator>();
+builder.Services.AddSharedServiceBridge();
 
 
 // Module Federation - ModuleFederationManager as Singleton
@@ -32,17 +33,17 @@ Console.WriteLine("║   🚀 Shell Application with Module         ║");
 Console.WriteLine("║      Federation Starting...                ║");
 Console.WriteLine("╚════════════════════════════════════════════╝");
 
-// Get the module manager and initialize it
+
+// Inicializar Module Federation
 var moduleFederation = host.Services.GetRequiredService<ModuleFederationManager>();
 var routeManager = host.Services.GetRequiredService<DynamicRouteManager>();
 
-// Initialize the route manager
 routeManager.Initialize();
 
-// Suscribirse a eventos
+// Eventos
 moduleFederation.OnModuleLoaded += (evt) =>
 {
-    Console.WriteLine($"✅ Module loaded: {evt.ModuleName} at {evt.LoadedAt:HH:mm:ss}");
+    Console.WriteLine($"✅ Module loaded: {evt.ModuleName}");
 };
 
 moduleFederation.OnModuleError += (evt) =>
@@ -50,7 +51,11 @@ moduleFederation.OnModuleError += (evt) =>
     Console.Error.WriteLine($"❌ Error in module {evt.ModuleName}: {evt.Error}");
 };
 
-Console.WriteLine("✅ Shell Application ready");
+Console.WriteLine("✅ Shell ready");
 Console.WriteLine($"📍 URL: {builder.HostEnvironment.BaseAddress}");
+Console.WriteLine($"🌐 API: https://tu-api.com/api/");
+Console.WriteLine("🔐 Auth synced via localStorage with all modules");
+Console.WriteLine("💡 Login here will sync automatically with Products");
+Console.WriteLine("");
 
 await host.RunAsync();

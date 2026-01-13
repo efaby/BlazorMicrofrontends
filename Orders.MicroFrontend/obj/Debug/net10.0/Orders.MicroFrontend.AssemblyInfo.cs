@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Orders.MicroFrontend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+452f525282201a6f789b87e6e2ef6350239a3b26")]
 [assembly: System.Reflection.AssemblyProductAttribute("Orders.MicroFrontend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Orders.MicroFrontend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

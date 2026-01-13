@@ -6,6 +6,7 @@
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.AssemblyInfoInputs.cache
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.AssemblyInfo.cs
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.csproj.CoreCompileInputs.cache
+/Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.sourcelink.json
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.dll
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/refint/MicroFrontend.Abstractions.dll
 /Users/fabianvilla/Documents/CoreNet10/BlazorMicrofrontends/MicroFrontend.Abstractions/obj/Debug/net10.0/MicroFrontend.Abstractions.pdb

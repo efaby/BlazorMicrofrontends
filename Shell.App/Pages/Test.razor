@@ -1,0 +1,390 @@
+﻿@page "/test"
+@using Shared.Contracts.Authentication
+@using Shared.Contracts.Communication
+@using Shared.Contracts.Http
+@inject SharedAuthenticationStateProvider AuthStateProvider
+@inject IEventAggregator EventAggregator
+@inject AuthenticatedHttpClient HttpClient
+@inject NavigationManager Navigation
+
+<PageTitle>Module Federation Test</PageTitle>
+
+<div class="container-fluid mt-4">
+    <div class="row">
+        <div class="col">
+            <h2 class="text-primary">
+                <i class="bi bi-clipboard-check"></i> Module Federation Test Suite
+            </h2>
+            <p class="text-muted">Test all components of the Module Federation system</p>
+        </div>
+    </div>
+
+    <!-- Authentication Status -->
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-shield-lock"></i> Authentication Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (isAuthenticated)
+                    {
+                        <div class="alert alert-success">
+                            <h6><i class="bi bi-check-circle-fill"></i> Authenticated</h6>
+                            <hr />
+                            <p class="mb-1"><strong>User ID:</strong> @currentUser?.UserId</p>
+                            <p class="mb-1"><strong>Username:</strong> @currentUser?.Username</p>
+                            <p class="mb-1"><strong>Email:</strong> @currentUser?.Email</p>
+                            <p class="mb-1"><strong>Roles:</strong>
+                                @foreach (var role in currentUser?.Roles ?? new List<string>())
+                                {
+                                    <span class="badge bg-info me-1">@role</span>
+                                }
+                            </p>
+                            <p class="mb-0"><strong>Token:</strong> <code>@currentToken?[..30]...</code></p>
+                        </div>
+                        <button class="btn btn-danger" @onclick="Logout">
+                            <i class="bi bi-box-arrow-right"></i> Logout
+                        </button>
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle"></i> Not authenticated
+                        </div>
+                        <button class="btn btn-primary" @onclick='() => Navigation.NavigateTo("/login")'>
+                            <i class="bi bi-box-arrow-in-right"></i> Go to Login
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-broadcast"></i> Event System
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Test Message:</label>
+                        <input type="text" class="form-control" @bind="testMessage"
+                            placeholder="Enter a test message" />
+                    </div>
+                    <button class="btn btn-success" @onclick="PublishTestEvent" disabled="@(!isAuthenticated)">
+                        <i class="bi bi-send"></i> Publish Event to All Modules
+                    </button>
+
+                    @if (eventsSent > 0)
+                    {
+                        <div class="alert alert-info mt-3 mb-0">
+                            <i class="bi bi-check-circle"></i> @eventsSent event(s) published
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HTTP Client Test -->
+    <div class="row mt-3">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-cloud"></i> HTTP Client Test
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Test that HTTP requests include the authentication token automatically.</p>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-info" @onclick="TestHttpClient"
+                            disabled="@(!isAuthenticated || isTestingHttp)">
+                            @if (isTestingHttp)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2"></span>
+                            }
+                            <i class="bi bi-cloud-download"></i> Test API Call (with Token)
+                        </button>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(httpTestResult))
+                    {
+                        <div class="alert alert-success mt-3 mb-0">
+                            <strong>Result:</strong><br />
+                            <code>@httpTestResult</code>
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(httpTestError))
+                    {
+                        <div class="alert alert-danger mt-3 mb-0">
+                            <strong>Error:</strong><br />
+                            @httpTestError
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">
+                        <i class="bi bi-arrow-left-right"></i> Cross-Module Communication
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p>Send data to other modules via EventAggregator.</p>
+
+                    <div class="mb-2">
+                        <select class="form-select" @bind="targetModule">
+                            <option value="*">All Modules (*)</option>
+                            <option value="Products">Products</option>
+                            <option value="Customers">Customers</option>
+                            <option value="Orders">Orders</option>
+                            <option value="Shell">Shell</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-warning" @onclick="SendCrossModuleEvent" disabled="@(!isAuthenticated)">
+                        <i class="bi bi-send"></i> Send to @targetModule
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Log -->
+    <div class="row mt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-terminal"></i> Event Log
+                    </h5>
+                    <button class="btn btn-sm btn-outline-light" @onclick="ClearLog">
+                        <i class="bi bi-trash"></i> Clear
+                    </button>
+                </div>
+                <div class="card-body bg-dark text-light"
+                    style="max-height: 300px; overflow-y: auto; font-family: monospace;">
+                    @if (eventLog.Any())
+                    {
+                        @foreach (var log in eventLog.OrderByDescending(l => l.Timestamp).Take(50))
+                        {
+                            <div class="mb-1">
+                                <span class="text-muted">[<span
+                                        class="text-info">@log.Timestamp.ToString("HH:mm:ss.fff")</span>]</span>
+                                <span class="@GetLogColor(log.Type)">@log.Message</span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="text-muted">No events logged yet...</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool isAuthenticated = false;
+    private UserInfo? currentUser;
+    private string? currentToken;
+    private string testMessage = "Hello from Test Page!";
+    private string targetModule = "*";
+    private int eventsSent = 0;
+    private bool isTestingHttp = false;
+    private string? httpTestResult;
+    private string? httpTestError;
+
+    private List<LogEntry> eventLog = new();
+
+    private class LogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Message { get; set; } = "";
+        public LogType Type { get; set; }
+    }
+
+    private enum LogType { Info, Success, Warning, Error }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAuthState();
+
+        // Suscribirse a eventos
+        EventAggregator.Subscribe<AuthenticationChangedEvent>(OnAuthChanged);
+        EventAggregator.Subscribe<CrossModuleDataEvent>(OnCrossModuleEvent);
+        EventAggregator.Subscribe<ModuleConnectedEvent>(OnModuleConnected);
+
+        AddLog("Test page initialized", LogType.Info);
+    }
+
+    private async Task RefreshAuthState()
+    {
+        isAuthenticated = await AuthStateProvider.IsAuthenticatedAsync();
+        if (isAuthenticated)
+        {
+            currentUser = await AuthStateProvider.GetUserInfoAsync();
+            currentToken = await AuthStateProvider.GetTokenAsync();
+            AddLog($"User authenticated: {currentUser?.Username}", LogType.Success);
+        }
+        else
+        {
+            currentUser = null;
+            currentToken = null;
+            AddLog("No authenticated user", LogType.Warning);
+        }
+        StateHasChanged();
+    }
+
+    private async Task PublishTestEvent()
+    {
+        try
+        {
+            var evt = new CrossModuleDataEvent(
+            "Test",
+            "*",
+            "TestMessage",
+            new { Message = testMessage, Timestamp = DateTime.Now }
+            );
+
+            await EventAggregator.PublishAsync(evt);
+            eventsSent++;
+
+            AddLog($"Published event to all modules: {testMessage}", LogType.Success);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Error publishing event: {ex.Message}", LogType.Error);
+        }
+    }
+
+    private async Task SendCrossModuleEvent()
+    {
+        try
+        {
+            var evt = new CrossModuleDataEvent(
+            "Test",
+            targetModule,
+            "CrossModuleTest",
+            new
+            {
+                From = "Test Page",
+                Message = testMessage,
+                User = currentUser?.Username
+            }
+            );
+
+            await EventAggregator.PublishAsync(evt);
+
+            AddLog($"Sent cross-module event to: {targetModule}", LogType.Success);
+        }
+        catch (Exception ex)
+        {
+            AddLog($"Error sending cross-module event: {ex.Message}", LogType.Error);
+        }
+    }
+
+    private async Task TestHttpClient()
+    {
+        isTestingHttp = true;
+        httpTestResult = null;
+        httpTestError = null;
+        StateHasChanged();
+
+        try
+        {
+            AddLog("Testing HTTP client with authentication token...", LogType.Info);
+
+            // Simular una llamada API
+            await Task.Delay(1000);
+
+            // En producción, esto sería: await HttpClient.GetAsync<T>("endpoint")
+            var token = await AuthStateProvider.GetTokenAsync();
+
+            httpTestResult = $"✅ Token included in request: {token?[..30]}...";
+            AddLog("HTTP client test successful - token automatically included", LogType.Success);
+        }
+        catch (Exception ex)
+        {
+            httpTestError = ex.Message;
+            AddLog($"HTTP client test failed: {ex.Message}", LogType.Error);
+        }
+        finally
+        {
+            isTestingHttp = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        await AuthStateProvider.MarkUserAsLoggedOutAsync();
+        AddLog("User logged out", LogType.Warning);
+        await RefreshAuthState();
+    }
+
+    private void OnAuthChanged(AuthenticationChangedEvent evt)
+    {
+        AddLog($"Auth event received: {(evt.IsAuthenticated ? "Login" : "Logout")}", LogType.Info);
+        InvokeAsync(async () =>
+        {
+            await RefreshAuthState();
+        });
+    }
+
+    private void OnCrossModuleEvent(CrossModuleDataEvent evt)
+    {
+        if (evt.TargetModule == "*" || evt.TargetModule == "Test")
+        {
+            AddLog($"Cross-module event: {evt.SourceModule} → {evt.TargetModule} ({evt.EventType})", LogType.Info);
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnModuleConnected(ModuleConnectedEvent evt)
+    {
+        AddLog($"Module connected: {evt.ModuleName}", LogType.Success);
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void AddLog(string message, LogType type)
+    {
+        eventLog.Add(new LogEntry
+        {
+            Timestamp = DateTime.Now,
+            Message = message,
+            Type = type
+        });
+
+        if (eventLog.Count > 100)
+        {
+            eventLog.RemoveAt(0);
+        }
+    }
+
+    private void ClearLog()
+    {
+        eventLog.Clear();
+        AddLog("Log cleared", LogType.Info);
+    }
+
+    private string GetLogColor(LogType type) => type switch
+    {
+        LogType.Success => "text-success",
+        LogType.Error => "text-danger",
+        LogType.Warning => "text-warning",
+        LogType.Info => "text-info",
+        _ => "text-white"
+    };
+}

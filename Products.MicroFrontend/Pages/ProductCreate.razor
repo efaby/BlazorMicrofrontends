@@ -1,5 +1,6 @@
 ﻿@page "/products/create"
 @using Products.MicroFrontend.Services
+@using Products.MicroFrontend.Models
 @inject IProductService ProductService
 @inject NavigationManager Navigation
 <PageTitle>Create Product</PageTitle>
@@ -68,7 +69,7 @@
 </div>
 
 @code {
-    private ProductDto newProduct = new()
+    private Product newProduct = new()
     {
         Name = string.Empty,
         Description = string.Empty,
@@ -79,7 +80,7 @@
     {
         var success = await ProductService.CreateProductAsync(newProduct);
 
-        if (success)
+        if (success.Name != null)
         {
             Navigation.NavigateTo("/products");
         }
