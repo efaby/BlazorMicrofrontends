@@ -20,7 +20,8 @@
           "net10.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.pkg.github.com/efaby/index.json": {}
         },
         "frameworks": {
           "net10.0": {
@@ -363,7 +364,8 @@
           "net10.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.pkg.github.com/efaby/index.json": {}
         },
         "frameworks": {
           "net10.0": {
@@ -714,7 +716,8 @@
           "net10.0"
         ],
         "sources": {
-          "https://api.nuget.org/v3/index.json": {}
+          "https://api.nuget.org/v3/index.json": {},
+          "https://nuget.pkg.github.com/efaby/index.json": {}
         },
         "frameworks": {
           "net10.0": {
